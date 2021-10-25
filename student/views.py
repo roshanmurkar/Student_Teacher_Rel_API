@@ -4,6 +4,9 @@ from .exceptions import EmptyData
 
 db_query = DBQuery
 
+##################################################################################
+##################################################################################
+
 student= Blueprint("student",__name__)
 
 """ api for new student"""
@@ -11,15 +14,15 @@ student= Blueprint("student",__name__)
 def new_student():
     user_data = request.get_json()
     try:
-        if len(user_data['stud_name']) == 0:
+        if len(user_data['student_name']) == 0:
             raise EmptyData
         output =db_query.student_select_all()
 
         for user in output:
-            if int(user['stud_id']) == int(user_data['stud_id']):
-                return jsonify({"message": "Id is already assigned to the student","data":user_data})
+            if str(user['stud_name']) == str(user_data['student_name']):
+                return jsonify({"message": "Student is already present ","data":user_data})
                 break
-        db_query.insert_student_data(user_data['stud_id'], user_data['stud_name'])
+        db_query.insert_student_data(user_data['student_name'])
         return jsonify({"message": "new student is added","data":user_data})
     except EmptyData:
         return jsonify({"message": "Empty data is not allowed","data":user_data})
@@ -34,7 +37,8 @@ def get_student():
     return jsonify({"message": "All students entries", "data": output})
 
 
-# Teacher
+##################################################################################
+##################################################################################
 
 teacher= Blueprint("teacher",__name__)
 
@@ -43,14 +47,14 @@ teacher= Blueprint("teacher",__name__)
 def new_teacher():
     user_data = request.get_json()
     try:
-        if len(user_data['teache_name']) == 0:
+        if len(user_data['teacher_name']) == 0:
             raise EmptyData
         output =db_query.teacher_select_all()
         for user in output:
-            if int(user['teach_id']) == int(user_data['teach_id']):
-                return jsonify({"message": "Id is already assigned to the teacher","data":user_data})
+            if str(user['teach_name']) == str(user_data['teacher_name']):
+                return jsonify({"message": "Teacher is already added","data":user_data})
                 break
-        db_query.insert_teacher_data(user_data['teach_id'], user_data['teache_name'])
+        db_query.insert_teacher_data(user_data['teacher_name'])
         return jsonify({"message": "new teacher is added"},user_data)
     except EmptyData:
         return jsonify({"message": "Empty data is not allowed","data":user_data})
@@ -64,7 +68,8 @@ def get_teacher():
     output = db_query.teacher_select_all()
     return jsonify({"message": "All teachers entries", "data": output})
 
-# Subject
+##################################################################################
+##################################################################################
 
 subject= Blueprint("subject",__name__)
 
@@ -74,14 +79,14 @@ subject= Blueprint("subject",__name__)
 def new_subject():
     user_data = request.get_json()
     try:
-        if len(user_data['sub_name']) == 0:
+        if len(user_data['subject_name']) == 0:
             raise EmptyData
         output =db_query.subject_select_all()
         for sub in output:
-            if str(sub['sub_name']) == str(user_data['sub_name']) and int(sub['t_id']) == int(user_data['teach_id']):
-                return jsonify({"message": "Subject is already added for this teacher","data":user_data})
-        db_query.insert_subject_data(user_data['sub_name'], user_data['teach_id'])
-        return jsonify({"message": "subject is added for this teacher","data":user_data})
+            if str(sub['sub_name']) == str(user_data['subject_name']):
+                return jsonify({"message": "Subject is already added ","data":user_data})
+        db_query.insert_subject_data(user_data['subject_name'])
+        return jsonify({"message": "New subject is added","data":user_data})
     except EmptyData:
         return jsonify({"message": "Empty data is not allowed","data":user_data})
     except Exception as e:
@@ -93,6 +98,40 @@ def new_subject():
 def get_subject():
     output = db_query.subject_select_all()
     return jsonify({"message": "All subjects entries", "data": output})
+
+##################################################################################
+##################################################################################
+
+teacher_subject_rel = Blueprint("teacher_subject_rel",__name__)
+
+""" api for assigning subject to teacher"""
+@teacher_subject_rel.route("/reg/teacher/subject",methods=['POST'])
+def reg_teach_for_sub():
+    user_data = request.get_json()
+    output = db_query.teach_sub_select_all()
+    for teach_sub in output:
+        if int(teach_sub['teach_id']) == int(user_data['teacher_id']) and int(teach_sub['sub_id']) == int(user_data['subject_id']):
+            return jsonify({"message": "subject is already added for this teacher", "data": user_data})
+    db_query.insert_sub_for_teach_data(user_data['teacher_id'],user_data['subject_id'])
+    return jsonify({"message":"subject is added for this teacher","data":user_data})
+
+
+""" api for getting all subject for particular teacher"""
+@teacher_subject_rel.route("/rel/teacher/subject",methods=['GET'])
+def get_teacher_subject():
+    user_data = request.get_json()
+    output = db_query.get_teacher_subject(user_data['teacher_id'])
+    return jsonify({"message": "teacher subject relationship", "data": output})
+
+""" api for getting all teachers of single subject"""
+@teacher_subject_rel.route("/rel/subject/teacher",methods=['GET'])
+def get_subject_teacher():
+    user_data = request.get_json()
+    output = db_query.get_subject_teacher(user_data['subject_id'])
+    return jsonify({"message": "teacher subject relationship", "data": output})
+
+##################################################################################
+##################################################################################
 
 
 student_teacher_rel = Blueprint("student_teacher_rel",__name__)
@@ -110,33 +149,19 @@ def reg_teach_for_stud():
     return jsonify({"message":"teacher is added for this student","data":user_data})
 
 
-""" api for getting particular teachers subject"""
-@student_teacher_rel.route("/rel/teacher/subject",methods=['GET'])
-def get_teacher_subject():
-    user_data = request.get_json()
-    output = db_query.get_teacher_subject(user_data['teacher_id'])
-    return jsonify({"message": "teacher subject relationship", "data": output})
-
-
-""" api for getting particular teachers student"""
+""" api for getting all students for particular teacher"""
 @student_teacher_rel.route("/rel/teacher/student",methods=['GET'])
 def get_teacher_student():
     user_data = request.get_json()
     output = db_query.get_teacher_student_rel(user_data['teacher_id'])
-    return jsonify({"message": "teacher subject relationship", "data": output})
+    return jsonify({"message": "teacher student relationship", "data": output})
 
-""" api for getting student teacher relationship using student particular id"""
-@student_teacher_rel.route("/rel/student/teacher", methods=['GET'])
-def get_stud_teach_rel():
+""" api for getting all teachers for particular student"""
+@student_teacher_rel.route("/rel/teacher/student",methods=['GET'])
+def get_student_teacher():
     user_data = request.get_json()
     output = db_query.get_student_teacher_rel(user_data['student_id'])
-    return jsonify({"message": "student teacher relationship", "data": output})
+    return jsonify({"message": "subject teacher relationship", "data": output})
 
 
-""" getting student teacher subject relationship"""
-@student_teacher_rel.route("/rel/teacher/student/subject", methods=['GET'])
-def get_stud_teach_sub_rel():
-    user_data = request.get_json()
-    output = db_query.get_student_teacher_subject_rel(user_data['student_id'])
-    return jsonify({"message": "student teacher subject relationship", "data": output})
 
