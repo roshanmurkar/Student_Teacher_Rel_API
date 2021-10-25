@@ -35,9 +35,7 @@ class DBQuery:
 
     @staticmethod
     def insert_student_data(name):
-        query=f"INSERT INTO student (stud_name) VALUES ('{name}')"
-        connection.cursor.execute(query)
-        # connection.cursor.execute("INSERT INTO student (stud_name) VALUES (%s)",name)
+        connection.cursor.execute("INSERT INTO student (stud_name) VALUES(%s)",[name])
         connection.conn.commit()
         return True
 
@@ -69,20 +67,25 @@ class DBQuery:
 
     @staticmethod
     def get_student_teacher_rel(stud_id):
-        connection.cursor.execute("""SELECT stud_name, teach_name 
-                                    FROM student 
-                                    INNER JOIN stud_teach ON stud_teach.stud_id = student.stud_id
-                                    INNER JOIN teacher ON teacher.teach_id = stud_teach.teach_id
-                                    WHERE student.stud_id = (%s)""",stud_id)
+        # connection.cursor.execute("""SELECT stud_name, teach_name
+        #                             FROM student
+        #                             INNER JOIN stud_teach ON stud_teach.stud_id = student.stud_id
+        #                             INNER JOIN teacher ON teacher.teach_id = stud_teach.teach_id
+        #                             WHERE student.stud_id = (%s)""",stud_id)
+        connection.cursor.execute("""select teacher.teach_id,teacher.teach_name 
+                                            from teacher 
+                                            inner join stud_teach on stud_teach.teach_id = teacher.teach_id 
+                                            inner join student on stud_teach.stud_id = student.stud_id 
+                                            where student.stud_id = (%s)""", stud_id)
         output = connection.cursor.fetchall()
         return output
 
     @staticmethod
     def get_teacher_student_rel(teach_id):
-        connection.cursor.execute("""select teacher.teach_name,student.stud_name
-                                        FROM teacher
-                                        INNER JOIN stud_teach ON stud_teach.teach_id = teacher.teach_id
-                                        INNER JOIN student ON stud_teach.stud_id = student.stud_id
+        connection.cursor.execute("""select student.stud_id,student.stud_name
+                                        FROM student
+                                        INNER JOIN stud_teach ON stud_teach.stud_id = student.stud_id
+                                        INNER JOIN teacher ON stud_teach.teach_id = teacher.teach_id
                                         WHERE teacher.teach_id = (%s)""", teach_id)
         output = connection.cursor.fetchall()
         return output
@@ -100,10 +103,10 @@ class DBQuery:
 
     @staticmethod
     def get_subject_teacher(sub_id):
-        connection.cursor.execute("""select teach_name,sub_name 
-                                        from teacher 
-                                        inner join teach_sub on teach_sub.teach_id = teacher.teach_id 
-                                        inner join subject on subject.sub_id = teach_sub.sub_id 
+        connection.cursor.execute("""select teach_name,sub_name
+                                        from teacher
+                                        inner join teach_sub on teach_sub.teach_id = teacher.teach_id
+                                        inner join subject on subject.sub_id = teach_sub.sub_id
                                         where subject.sub_id = (%s)""", sub_id)
 
         output = connection.cursor.fetchall()

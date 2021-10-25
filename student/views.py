@@ -31,7 +31,7 @@ def new_student():
 
 
 """ api for show all students """
-@student.route("/get/student",methods=['GET'])
+@student.route("/student",methods=['GET'])
 def get_student():
     output = db_query.student_select_all()
     return jsonify({"message": "All students entries", "data": output})
@@ -63,7 +63,7 @@ def new_teacher():
 
 
 """ api for show all teachers"""
-@teacher.route("/get/teacher",methods=['GET'])
+@teacher.route("/teacher",methods=['GET'])
 def get_teacher():
     output = db_query.teacher_select_all()
     return jsonify({"message": "All teachers entries", "data": output})
@@ -94,7 +94,7 @@ def new_subject():
 
 
 """ api for show all subjects"""
-@subject.route("/get/subject",methods=['GET'])
+@subject.route("/subject",methods=['GET'])
 def get_subject():
     output = db_query.subject_select_all()
     return jsonify({"message": "All subjects entries", "data": output})
@@ -157,7 +157,7 @@ def get_teacher_student():
     return jsonify({"message": "teacher student relationship", "data": output})
 
 """ api for getting all teachers for particular student"""
-@student_teacher_rel.route("/rel/teacher/student",methods=['GET'])
+@student_teacher_rel.route("/rel/student/teacher",methods=['GET'])
 def get_student_teacher():
     user_data = request.get_json()
     output = db_query.get_student_teacher_rel(user_data['student_id'])
