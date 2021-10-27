@@ -28,20 +28,28 @@ class DBQuery:
         return output
 
     @staticmethod
-    def insert_student_data(id, name):
-        connection.cursor.execute("INSERT INTO student VALUES(%s,%s)", (id,name))
+    def teach_sub_select_all():
+        connection.cursor.execute("select * from teach_sub")
+        output = connection.cursor.fetchall()
+        return output
+
+    @staticmethod
+    def insert_student_data(name):
+        connection.cursor.execute("INSERT INTO student (stud_name) VALUES(%s)",[name])
         connection.conn.commit()
         return True
 
     @staticmethod
-    def insert_teacher_data(id, name):
-        connection.cursor.execute("INSERT INTO teacher VALUES(%s,%s)", (id, name))
+    def insert_teacher_data(name):
+        query=f"INSERT INTO teacher(teach_name)VALUES('{name}')"
+        connection.cursor.execute(query)
         connection.conn.commit()
         return True
 
     @staticmethod
-    def insert_subject_data(name,id):
-        connection.cursor.execute("INSERT INTO subject(sub_name,t_id) VALUES(%s,%s)", (name,id))
+    def insert_subject_data(name):
+        query = f"INSERT INTO subject(sub_name) VALUES('{name}')"
+        connection.cursor.execute(query)
         connection.conn.commit()
         return True
 
@@ -51,43 +59,55 @@ class DBQuery:
         connection.conn.commit()
         return True
 
+    @staticmethod
+    def insert_sub_for_teach_data(teach_id,sub_id):
+        connection.cursor.execute("INSERT INTO teach_sub(teach_id,sub_id) VALUES(%s,%s)", (teach_id,sub_id))
+        connection.conn.commit()
+        return True
 
     @staticmethod
     def get_student_teacher_rel(stud_id):
-        connection.cursor.execute("""select student.stud_name,teacher.teache_name
-                                  from student
-                                  join stud_teach on stud_teach.stud_id = student.stud_id
-                                  join teacher on teacher.teach_id=stud_teach.teach_id
-                                  where student.stud_id = (%s)""",stud_id)
+        # connection.cursor.execute("""SELECT stud_name, teach_name
+        #                             FROM student
+        #                             INNER JOIN stud_teach ON stud_teach.stud_id = student.stud_id
+        #                             INNER JOIN teacher ON teacher.teach_id = stud_teach.teach_id
+        #                             WHERE student.stud_id = (%s)""",stud_id)
+        connection.cursor.execute("""select teacher.teach_id,teacher.teach_name 
+                                            from teacher 
+                                            inner join stud_teach on stud_teach.teach_id = teacher.teach_id 
+                                            inner join student on stud_teach.stud_id = student.stud_id 
+                                            where student.stud_id = (%s)""", stud_id)
         output = connection.cursor.fetchall()
         return output
 
     @staticmethod
     def get_teacher_student_rel(teach_id):
-        connection.cursor.execute("""select teacher.teache_name,student.stud_name
+        connection.cursor.execute("""select student.stud_id,student.stud_name
+                                        FROM student
+                                        INNER JOIN stud_teach ON stud_teach.stud_id = student.stud_id
+                                        INNER JOIN teacher ON stud_teach.teach_id = teacher.teach_id
+                                        WHERE teacher.teach_id = (%s)""", teach_id)
+        output = connection.cursor.fetchall()
+        return output
+
+    @staticmethod
+    def get_teacher_subject(teach_id):
+        connection.cursor.execute("""select teach_name,sub_name 
+                                    from teacher 
+                                    inner join teach_sub on teach_sub.teach_id = teacher.teach_id 
+                                    inner join subject on subject.sub_id = teach_sub.sub_id 
+                                    where teacher.teach_id = (%s)""",teach_id)
+
+        output = connection.cursor.fetchall()
+        return output
+
+    @staticmethod
+    def get_subject_teacher(sub_id):
+        connection.cursor.execute("""select teach_name,sub_name
                                         from teacher
-                                        join stud_teach on stud_teach.teach_id = teacher.teach_id
-                                        join student on stud_teach.stud_id = student.stud_id
-                                        where teacher.teach_id = (%s);""", teach_id)
-        output = connection.cursor.fetchall()
-        return output
+                                        inner join teach_sub on teach_sub.teach_id = teacher.teach_id
+                                        inner join subject on subject.sub_id = teach_sub.sub_id
+                                        where subject.sub_id = (%s)""", sub_id)
 
-    @staticmethod
-    def get_student_teacher_subject_rel(stud_id):
-        connection.cursor.execute("""select student.stud_name,teacher.teache_name,subject.sub_name
-                                      from student
-                                      join stud_teach on stud_teach.stud_id = student.stud_id
-                                      join subject on subject.sub_id=stud_teach.teach_id
-                                      join teacher on teacher.teach_id=subject.t_id
-                                      where student.stud_id = (%s)""",stud_id)
-        output = connection.cursor.fetchall()
-        return output
-
-    @staticmethod
-    def get_teacher_subject(t_id):
-        connection.cursor.execute("""select teacher.teache_name,subject.sub_name
-                                    from teacher
-                                    join subject on subject.t_id = teacher.teach_id
-                                    where teacher.teach_id =(%s);""",t_id)
         output = connection.cursor.fetchall()
         return output
