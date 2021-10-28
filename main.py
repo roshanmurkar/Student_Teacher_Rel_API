@@ -1,9 +1,12 @@
-from flask import Flask
+from flask import Flask,jsonify,request
 from student.views import student
 from student.views import teacher
 from student.views import subject
 from student.views import student_teacher_rel
 from student.views import teacher_subject_rel
+
+
+from flask_pymongo import PyMongo
 
 app = Flask(__name__)
 

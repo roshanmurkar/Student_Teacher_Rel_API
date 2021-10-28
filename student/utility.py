@@ -2,6 +2,7 @@ import pymysql.cursors
 from dotenv import dotenv_values
 import psycopg2.extras
 
+
 config = dotenv_values(".env")
 
 ##################################################################################
@@ -42,3 +43,9 @@ class DBConnection:
     )
     print("database connected")
     cursor = conn.cursor()
+
+
+
+
+
+#pymongo
