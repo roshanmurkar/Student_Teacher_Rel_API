@@ -2,6 +2,7 @@ from flask import Blueprint,jsonify,request
 from student.coordinator import DBQuery
 from .exceptions import EmptyData
 
+
 db_query = DBQuery
 
 ##################################################################################
@@ -35,6 +36,13 @@ def new_student():
 def get_student():
     output = db_query.student_select_all()
     return jsonify({"message": "All students entries", "data": output})
+
+
+@student.route("/mongo/reg/student",methods=['POST'])
+def mongo_new_student():
+    user_data = request.get_json()
+    db.student.insert_one(user_data)
+    return jsonify({"message": "successful"})
 
 
 ##################################################################################
