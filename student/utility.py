@@ -10,7 +10,7 @@ config = dotenv_values(".env")
 
 #mysql credentials
 
-"""class DBConnection:
+class DBConnection:
     conn = pymysql.connect(
         host=config.get('HOST'),
         user=config.get('USER'),
@@ -21,7 +21,7 @@ config = dotenv_values(".env")
     )
     cursor = conn.cursor()
 
-HOST=localhost
+"""HOST=localhost
 USER=root
 PASSWORD=root
 DATABASE=s_t
@@ -32,7 +32,7 @@ PORT=3308"""
 ##################################################################################
 
 #postgres credentials
-
+"""
 class DBConnection:
     conn = psycopg2.connect(
         host=config.get('HOST'),
@@ -43,7 +43,7 @@ class DBConnection:
     )
     print("database connected")
     cursor = conn.cursor()
-
+"""
 
 
 

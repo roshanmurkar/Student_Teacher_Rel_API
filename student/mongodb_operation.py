@@ -13,24 +13,45 @@ print("successful")
 @app.route("/reg/student",methods=['POST'])
 def new_student():
     user_data = request.get_json()
-    # print(user_data)
-    db.student.insert_one({"stud_name":user_data['student_name'],"teacher":[user_data['teacher_name']]})
-    # print(user_data,a)
-    # user_data.pop('_id')
-    return jsonify({"message":"insert successfully","data":user_data})
+    insert_data = {"stud_name":user_data['student_name'],"teacher":[user_data['teacher_name']]}
+    db.student.insert_one(insert_data)
+    var = insert_data['_id']
+    insert_data.update({"_id": str(var)})
+    return jsonify({"message":"insert successfully","data":insert_data})
+
+@app.route("/update/student",methods=['POST'])
+def update_student():
+    user_data = request.get_json()
+    for entry in db.student.find():
+        if str(entry['_id']) == user_data['id']:
+            db.student.update_one({"_id": entry['_id']}, {"$push": {"teacher": user_data["teacher_name"]}})
+            return jsonify({"message": "update successfully", "data": user_data})
+    return jsonify({"message":"no student found with this id","data":user_data})
 
 @app.route("/reg/teacher",methods=['POST'])
 def new_teacher():
     user_data = request.get_json()
-    db.teacher.insert_one({"teach_name":user_data['teacher_name'],"subject":[user_data['subject_name']]})
-    # user_data.pop('_id')
-    return jsonify({"message":"insert successfully","data":user_data})
+    insert_data = {"teach_name":user_data['teacher_name'],"subject":[user_data['subject_name']]}
+    db.teacher.insert_one(insert_data)
+    var = insert_data['_id']
+    insert_data.update({"_id": str(var)})
+    return jsonify({"message":"insert successfully","data":insert_data})
+
+@app.route("/update/teacher",methods=['POST'])
+def update_teacher():
+    user_data = request.get_json()
+    for entry in db.teacher.find():
+        if str(entry['_id']) == user_data['id']:
+            db.teacher.update_one({"_id": entry['_id']}, {"$push": {"subject": user_data["subject_name"]}})
+            return jsonify({"message": "update successfully", "data": user_data})
+    return jsonify({"message":"no teacher is found with this id","data":user_data})
 
 @app.route("/reg/subject",methods=['POST'])
 def new_subject():
     user_data = request.get_json()
     db.subject.insert_one(user_data)
-    user_data.pop('_id')
+    var = user_data['_id']
+    user_data.update({"_id": str(var)})
     return jsonify({"message":"insert successfully","data":user_data})
 
 
@@ -38,18 +59,17 @@ def new_subject():
 def get_students():
     docs = []
     for entry in db.student.find():
-        #entry.pop('_id')
+        var = entry['_id']
+        entry.update({"_id": str(var)})
         docs.append(entry)
-        print(entry['_id'])
-        print(entry)
-    # print(docs,"docs")
     return jsonify({"message":"all student list","data":docs})
 
 @app.route("/teacher",methods=['GET'])
 def get_teachers():
     docs = []
     for entry in db.teacher.find():
-        entry.pop('_id')
+        var = entry['_id']
+        entry.update({"_id": str(var)})
         docs.append(entry)
     return jsonify({"message":"all teachers list","data":docs})
 
@@ -57,7 +77,8 @@ def get_teachers():
 def get_subjects():
     docs = []
     for entry in db.subject.find():
-        entry.pop('_id')
+        var = entry['_id']
+        entry.update({"_id": str(var)})
         docs.append(entry)
     return jsonify({"message":"all subject list","data":docs})
 
@@ -67,12 +88,9 @@ def get_subjects():
 def rel_student_teacher():
     user_data = request.get_json()
     name = user_data['student_name']
-    # data = db.student.find({"stud_name":name})
-    # print(data,"data")
     for data in db.student.find({"stud_name":name}):
-        print(data,"with _id")
-        data.pop('_id')
-        print(data,"without _id")
+        var = data['_id']
+        data.update({"_id": str(var)})
     return jsonify({"message":"student teacher relationship","data":data})
 
 
@@ -81,9 +99,8 @@ def rel_teacher_subject():
     user_data = request.get_json()
     name = user_data['teacher_name']
     for data in db.teacher.find({"teach_name":name}):
-        print(data,"with _id")
-        data.pop('_id')
-        print(data,"without _id")
+        var = data['_id']
+        data.update({"_id": str(var)})
     return jsonify({"message":"teacher subject relationship","data":data})
 
 @app.route("/rel/subject/teacher",methods=['GET'])
@@ -92,10 +109,9 @@ def rel_subject_teacher():
     user_data = request.get_json()
     name = user_data['subject_name']
     for data in db.teacher.find({"subject":name}):
-        print(data,"with _id")
-        data.pop('_id')
+        var = data['_id']
+        data.update({"_id": str(var)})
         docs.append(data)
-        print(data,"without _id")
     return jsonify({"message":"subject teacher relationship","data":docs})
 
 
